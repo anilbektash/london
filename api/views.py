@@ -1,5 +1,4 @@
 from django.shortcuts import render
-import psutil
 # Create your views here.
 from rest_framework import generics
 from .serializers import PlayerSerializer
@@ -44,18 +43,7 @@ class UserList(APIView):
                             sum = sum + 5
                 indice = indice + 1
             #And then select from the database
-            items = Player.objects.filter(player_id=player_id, timestamp__lte=end, timestamp__gte=start)
-            for item in items:
-                type = item.player_type
-                if type == 1:
-                    sum = sum + 1
-                if type == 2:
-                    sum = sum + 3
-                if type == 3:
-                    sum = sum + 2
-                if type == 4 or type == 5:
-                    sum = sum + 5
-            serializer = PlayerSerializer(user, many=False)
+
             return Response(sum)
         except Exception as ex:
             pass
@@ -69,14 +57,10 @@ class UserList(APIView):
         player_id = int(request.data["player_id"])
         player_type = int(request.data["player_type"])
         # --------------_CONVERT TO OBJECT
-        player_obj = Player(timestamp=timestamp, player_type=player_type, player_id=player_id)
         # --------------_IF MEMORY IS LESS THAN (AVAILABLE) 300 MB SAVE TO DB
         # --------------_ELSE SAVE TO NUMPY ARRAY
-        mem = psutil.virtual_memory()
-        if int(mem.free) < int(300000000):
-            player_obj.save()
-        else:
-            UserList.init_array = numpy.vstack((UserList.init_array, [player_id, player_type, timestamp]))
+
+        UserList.init_array = numpy.vstack((UserList.init_array, [player_id, player_type, timestamp]))
 
         return redirect('/players/')
 
